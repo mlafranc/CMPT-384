@@ -141,16 +141,6 @@ main = do
   srcText <- readFile fileName
   hPutStr stdout (unlines (matching regExp (lines srcText)))
 
--- 6.  Escaped Metacharacters (Feature 1)
-
--- 7.  Any Metacharacter (Feature 2)
-
--- 8.  Option Metacharacter (Feature 3)
-
--- 9.  Plus Metacharacter (Feature 4)
-
--- 10.  Character Classes(Feature 5)
-
 
 
 
