@@ -18,7 +18,8 @@ data RE = Epsilon
         | Ch Char 
         | Seq RE RE 
         | Alt RE RE 
-        | Star RE 
+        | Star RE
+        | Option RE 
         | Group RE 
         | Any
     deriving Show
@@ -38,6 +39,8 @@ match (Alt r1 r2) string = match r1 string || match r2 string
 match (Seq r1 r2) string = match_any_split r1 r2 (splits string)
 match (Star r1) "" = True
 match (Star r1) s = match_any_nonempty_split r1 (Star r1) (splits s)
+match (Option r1) "" = True
+match (Option r1) s = match r1 s
 match (Group r1) s = match r1 s
 match Any "" = False
 match Any (c : more_chars) = more_chars == []
