@@ -5,6 +5,13 @@ import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 -- Simpleton Regular Expressions in Haskell (Slow!)
 --
 
+-- To-Do:
+-- - Feature1: Escaped Metacharacters  ()
+-- - Feature2: Any Metacharacter       (Finished)
+-- - Feature3: Option Metacharacter    ()
+-- - Feature4: Plus Metacharacter      ()
+-- - Feature5: Character Classes       ()
+
 -- 1. An algebraic data type for regular expressions
 
 data RE = Epsilon 
