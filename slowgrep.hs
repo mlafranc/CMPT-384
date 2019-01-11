@@ -72,7 +72,7 @@ parseChar :: [Char] -> Maybe (RE, [Char])
 
 parseChar [] = Nothing
 parseChar (c:s)
-  | c == '|' || c == '*' || c == '(' || c == ')'   = Nothing
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' = Nothing
   | c == '.'                                       = Just (Any, s)
   | otherwise                                      = Just ((Ch c), s)
 
