@@ -7,7 +7,14 @@ import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 
 -- 1. An algebraic data type for regular expressions
 
-data RE = Epsilon | Ch Char | Seq RE RE | Alt RE RE | Star RE | Group RE deriving Show
+data RE = Epsilon 
+        | Ch Char 
+        | Seq RE RE 
+        | Alt RE RE 
+        | Star RE 
+        | Group RE 
+        | Any
+    deriving Show
 
 -- 2. A simple match function to determine if a string matches a regular expression
 
@@ -25,6 +32,8 @@ match (Seq r1 r2) string = match_any_split r1 r2 (splits string)
 match (Star r1) "" = True
 match (Star r1) s = match_any_nonempty_split r1 (Star r1) (splits s)
 match (Group r1) s = match r1 s
+match Any "" = False
+match Any (c : more_chars) = more_chars == []
 
 splits "" = [("", "")]
 splits (c1:chars) = ("", c1:chars) : add_to_prefixes c1 (splits chars)
@@ -54,6 +63,7 @@ parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
 parseChar (c:s)
   | c == '|' || c == '*' || c == '(' || c == ')'   = Nothing
+  | c == '.'                                       = Just (Any, s)
   | otherwise                                      = Just ((Ch c), s)
 
 parseElement ('(':more) =
@@ -108,6 +118,14 @@ matching :: [Char] -> [[Char]] -> [[Char]]
 matching regexp lines = case parseMain regexp of
                             Just r -> matches r lines
                             _ -> []
+
+-- for testing in GHCi
+matchTest :: String -> String -> Bool
+matchTest regexp str = case parseMain regexp of
+    Just r -> match r str
+    _ -> False
+
+
 
 -- 5.  Command line interface
 
