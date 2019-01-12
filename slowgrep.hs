@@ -6,7 +6,7 @@ import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 --
 
 -- To-Do:
--- - Feature1: Escaped Metacharacters  ()
+-- - Feature1: Escaped Metacharacters  (Finished)
 -- - Feature2: Any Metacharacter       (Finished)
 -- - Feature3: Option Metacharacter    (Finished)
 -- - Feature4: Plus Metacharacter      (Finished)
@@ -75,24 +75,29 @@ match_any_nonempty_split r1 r2 ((s1, s2) : more)
 -- ==BNF Grammars reference from notes==
 --  <RE> ::= <seq> | <RE> "|" <seq>
 --  <seq> ::= <item> | <seq> <item>
---  <item> ::= <element> | <element> "*" | <element> "?"
+--  <item> ::= <element> | <element> "*" | <element> "?" | <element> "+"
 --  <element> ::= <char> | "(" <RE> ")"
---  <char> ::= any character except "|", "*", "(", ")", "?" | "."
+--  <char> ::= any character except "|", "*", "(", ")", "?" | ".", "\"
 
 parseRE :: [Char] -> Maybe (RE, [Char])
 parseSeq :: [Char] -> Maybe (RE, [Char])
 parseItem :: [Char] -> Maybe (RE, [Char])
 parseElement :: [Char] -> Maybe (RE, [Char])
 parseChar :: [Char] -> Maybe (RE, [Char])
+parseMetachar :: [Char] -> Maybe (RE, [Char])
 
 extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
 extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
 
+-- parseMetachar :: [Char] -> Maybe (RE, [Char])
+parseMetachar (c1:c2:s) = Just ((Ch c2), s)
+
 -- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
-parseChar (c:s)
+parseChar str@(c:s)
   | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' = Nothing
   | c == '.'                                                  = Just (Any, s)
+  | c == '\\'                                                 = parseMetachar str
   | otherwise                                                 = Just ((Ch c), s)
 
 -- parseElement :: [Char] -> Maybe (RE, [Char])
