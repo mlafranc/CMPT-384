@@ -8,7 +8,7 @@ import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 -- To-Do:
 -- - Feature1: Escaped Metacharacters  ()
 -- - Feature2: Any Metacharacter       (Finished)
--- - Feature3: Option Metacharacter    ()
+-- - Feature3: Option Metacharacter    (Finished)
 -- - Feature4: Plus Metacharacter      ()
 -- - Feature5: Character Classes       ()
 
