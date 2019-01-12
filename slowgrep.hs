@@ -15,13 +15,13 @@ import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 -- 1. An algebraic data type for regular expressions
 
 data RE = Epsilon 
+        | Any
         | Ch Char 
         | Seq RE RE 
         | Alt RE RE 
         | Star RE
         | Option RE 
         | Group RE 
-        | Any
     deriving Show
 
 -- 2. A simple match function to determine if a string matches a regular expression
@@ -64,6 +64,13 @@ match_any_nonempty_split r1 r2 ((s1, s2) : more)
 
 -- 3.  A parser to convert text into regular expressions
 
+-- ==BNF Grammars reference from notes==
+--  <RE> ::= <seq> | <RE> "|" <seq>
+--  <seq> ::= <item> | <seq> <item>
+--  <item> ::= <element> | <element> "*"
+--  <element> ::= <char> | "(" <RE> ")"
+--  <char> ::= any character except "|", "*", "(", ")"
+
 parseRE :: [Char] -> Maybe (RE, [Char])
 parseSeq :: [Char] -> Maybe (RE, [Char])
 parseItem :: [Char] -> Maybe (RE, [Char])
@@ -73,8 +80,8 @@ parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
 parseChar (c:s)
   | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' = Nothing
-  | c == '.'                                       = Just (Any, s)
-  | otherwise                                      = Just ((Ch c), s)
+  | c == '.'                                                  = Just (Any, s)
+  | otherwise                                                 = Just ((Ch c), s)
 
 parseElement ('(':more) =
     case parseRE(more) of
@@ -85,6 +92,7 @@ parseElement s = parseChar s
 parseItem s =
    case parseElement(s) of
         Just (re, '*':more) -> Just (Star re, more)
+        Just (re, '?':more) -> Just (Option re, more)
         Just (re, more) -> Just (re, more)
         _ -> Nothing
 
