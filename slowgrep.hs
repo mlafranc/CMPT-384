@@ -9,19 +9,20 @@ import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 -- - Feature1: Escaped Metacharacters  ()
 -- - Feature2: Any Metacharacter       (Finished)
 -- - Feature3: Option Metacharacter    (Finished)
--- - Feature4: Plus Metacharacter      ()
+-- - Feature4: Plus Metacharacter      (Finished)
 -- - Feature5: Character Classes       ()
 
 -- 1. An algebraic data type for regular expressions
 
-data RE = Epsilon 
+data RE = Epsilon
         | Any
         | Ch Char 
-        | Seq RE RE 
-        | Alt RE RE 
+        | Seq RE RE
+        | Alt RE RE
         | Star RE
-        | Option RE 
-        | Group RE 
+        | Option RE
+        | Plus RE
+        | Group RE
     deriving Show
 
 -- 2. A simple match function to determine if a string matches a regular expression
@@ -42,6 +43,8 @@ match (Star r1) "" = True
 match (Star r1) s = match_any_nonempty_split r1 (Star r1) (splits s)
 match (Option r1) "" = True
 match (Option r1) s = match r1 s
+match (Plus r1) "" = False
+match (Plus r1) s = match_any_nonempty_split r1 (Star r1) (splits s)
 match (Group r1) s = match r1 s
 match Any "" = False
 match Any (c : more_chars) = more_chars == []
@@ -104,6 +107,7 @@ parseItem s =
    case parseElement(s) of
         Just (re, '*':more) -> Just (Star re, more)
         Just (re, '?':more) -> Just (Option re, more)
+        Just (re, '+':more) -> Just (Plus re, more)
         Just (re, more) -> Just (re, more)
         _ -> Nothing
 
