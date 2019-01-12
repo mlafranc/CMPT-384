@@ -32,6 +32,7 @@ add_to_prefixes :: Char -> [([Char], [Char])] -> [([Char], [Char])]
 match_any_split :: RE -> RE -> [([Char], [Char])] -> Bool
 match_any_nonempty_split :: RE -> RE -> [([Char], [Char])] -> Bool
 
+-- match :: RE -> [Char] -> Bool
 match Epsilon s = s == ""
 match (Ch a) "" = False
 match (Ch a) (c : more_chars) = a == c && more_chars == []
@@ -45,17 +46,21 @@ match (Group r1) s = match r1 s
 match Any "" = False
 match Any (c : more_chars) = more_chars == []
 
+-- splits :: [Char] -> [([Char], [Char])]
 splits "" = [("", "")]
 splits (c1:chars) = ("", c1:chars) : add_to_prefixes c1 (splits chars)
 
+-- add_to_prefixes :: Char -> [([Char], [Char])] -> [([Char], [Char])]
 add_to_prefixes c []  = []
 add_to_prefixes c ((pfx, sfx) : more) = (c:pfx, sfx) : (add_to_prefixes c more)
 
+-- match_any_split :: RE -> RE -> [([Char], [Char])] -> Bool
 match_any_split r1 r2 [] = False
 match_any_split r1 r2 ((s1, s2) : more_splits) 
    | match r1 s1 && match r2 s2     = True
    | otherwise                      = match_any_split r1 r2 more_splits 
 
+-- match_any_nonempty_split :: RE -> RE -> [([Char], [Char])] -> Bool
 match_any_nonempty_split r1 r2 [] = False
 match_any_nonempty_split r1 r2 ((s1, s2) : more) 
    | s1 /= "" && match r1 s1 && match r2 s2     = True
@@ -67,9 +72,9 @@ match_any_nonempty_split r1 r2 ((s1, s2) : more)
 -- ==BNF Grammars reference from notes==
 --  <RE> ::= <seq> | <RE> "|" <seq>
 --  <seq> ::= <item> | <seq> <item>
---  <item> ::= <element> | <element> "*"
+--  <item> ::= <element> | <element> "*" | <element> "?"
 --  <element> ::= <char> | "(" <RE> ")"
---  <char> ::= any character except "|", "*", "(", ")"
+--  <char> ::= any character except "|", "*", "(", ")", "?" | "."
 
 parseRE :: [Char] -> Maybe (RE, [Char])
 parseSeq :: [Char] -> Maybe (RE, [Char])
@@ -77,18 +82,24 @@ parseItem :: [Char] -> Maybe (RE, [Char])
 parseElement :: [Char] -> Maybe (RE, [Char])
 parseChar :: [Char] -> Maybe (RE, [Char])
 
+extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
+extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
+
+-- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
 parseChar (c:s)
   | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' = Nothing
   | c == '.'                                                  = Just (Any, s)
   | otherwise                                                 = Just ((Ch c), s)
 
+-- parseElement :: [Char] -> Maybe (RE, [Char])
 parseElement ('(':more) =
     case parseRE(more) of
         Just (re, ')':yet_more) -> Just(Group re, yet_more)
         _ -> Nothing
 parseElement s = parseChar s
 
+-- parseItem :: [Char] -> Maybe (RE, [Char])
 parseItem s =
    case parseElement(s) of
         Just (re, '*':more) -> Just (Star re, more)
@@ -96,24 +107,25 @@ parseItem s =
         Just (re, more) -> Just (re, more)
         _ -> Nothing
 
-extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
-
+-- parseSeq :: [Char] -> Maybe (RE, [Char])
 parseSeq s =
     case parseItem(s) of
         Just (r, more_chars) -> extendSeq(r, more_chars)
         _ -> Nothing
 
+-- extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
 extendSeq (e1, after1) =
     case parseItem(after1) of 
         Just(e2, more) -> extendSeq(Seq e1 e2, more)
         _ -> Just(e1, after1)
 
-extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
+-- parseRE :: [Char] -> Maybe (RE, [Char])
 parseRE s =
     case parseSeq(s) of
         Just (r, more_chars) -> extendRE(r, more_chars)
         _ -> Nothing
 
+-- extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
 extendRE (e1, []) = Just (e1, [])
 extendRE (e1, '|' : after_bar) =
     case parseSeq(after_bar) of 
@@ -122,7 +134,6 @@ extendRE (e1, '|' : after_bar) =
 extendRE(e1, c:more) = Just (e1, c:more)
 
 parseMain :: [Char] -> Maybe RE
-
 parseMain s = case parseRE s of 
     Just (e, []) -> Just e
     _ -> Nothing
