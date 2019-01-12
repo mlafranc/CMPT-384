@@ -90,15 +90,17 @@ extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
 extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
 
 -- parseMetachar :: [Char] -> Maybe (RE, [Char])
-parseMetachar (c1:c2:s) = Just ((Ch c2), s)
+parseMetachar (c:s)
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' || c == '\\' = Just ((Ch c), s)
+  | otherwise                                                                                      = Nothing
 
 -- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
-parseChar str@(c:s)
-  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' = Nothing
-  | c == '.'                                                  = Just (Any, s)
-  | c == '\\'                                                 = parseMetachar str
-  | otherwise                                                 = Just ((Ch c), s)
+parseChar (c:s)
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' = Nothing
+  | c == '.'                                                              = Just (Any, s)
+  | c == '\\'                                                             = parseMetachar s
+  | otherwise                                                             = Just ((Ch c), s)
 
 -- parseElement :: [Char] -> Maybe (RE, [Char])
 parseElement ('(':more) =
