@@ -92,10 +92,8 @@ extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
 -- parseMetachar :: [Char] -> Maybe (RE, [Char])
 parseMetachar [] = Just ((Ch '\\'), [])
 parseMetachar (c:s)
-  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' = Just ((Ch c), s)
-  | c == '\\'                                                                         = Just ((Seq (Ch '\\') (Ch '\\')), s)
-  | otherwise                                                                         = Nothing
--- Use sequence RE instead of just Ch
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' || c == '\\'  = Just ((Ch c), s)
+  | otherwise                                                                                       = Nothing
 
 -- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
