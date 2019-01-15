@@ -95,6 +95,7 @@ parseChar :: [Char] -> Maybe (RE, [Char])
 parseMetachar :: [Char] -> Maybe (RE, [Char])
 parseCharClass :: [Char] -> Maybe (RE, [Char])
 parseClassItems :: [Char] -> Maybe (RE, [Char])
+parseCCItem :: [Char] -> Maybe (RE, [Char])
 
 extendClassItems :: (RE, [Char]) -> Maybe (RE, [Char])
 extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
@@ -151,28 +152,36 @@ parseCharClass s =
 
 -- parseClassItems :: [Char] -> Maybe (RE, [Char])
 parseClassItems ('^':more) = 
-   case parseItem(more) of 
+   case parseCCItem(more) of 
 	Just (re, yet_more) -> case extendClassItems(re, yet_more) of
 		Just (re2, yet_more2) -> Just ((None re2), yet_more2) 
 	_ -> Nothing
 parseClassItems s =
-   case parseItem(s) of
+   case parseCCItem(s) of
 	Just (re, more) -> extendClassItems(re, more)
 	_ -> Nothing
 
 -- extendClassItems :: (RE, [Char]) -> Maybe (RE, [Char])
 extendClassItems (e1, '-':after) =
-   case parseItem(after) of
+   case parseCCItem(after) of
 	Just (e2, '-':more) -> extendClassItems (Alt (Range e1 e2) (Ch '-'), more)
         Just (e2, more) -> extendClassItems(Range e1 e2, more)
         _ -> Just (e1, after)
 
 extendClassItems (e1, after1) = 
-   case parseItem(after1) of
-	Just (e2, '-':more) -> case parseItem(more) of
+   case parseCCItem(after1) of
+	Just (e2, '-':more) -> case parseCCItem(more) of
 		Just (e3, yet_more) -> extendClassItems (Alt e1 (Range e2 e3), yet_more)
 	Just (e2, more) -> extendClassItems(Alt e1 e2, more)
 	_ -> Just (e1, after1)
+
+-- parseCCItem :: [Char] -> Maybe (RE, [Char])
+parseCCItem [] = Nothing
+parseCCItem str@(c:s)
+  | c == ']' 									      = Nothing
+  | c == '\\'                                                                         = parseMetachar str
+  | otherwise                                                                         = Just ((Ch c), s)
+
 
 -- parseRE :: [Char] -> Maybe (RE, [Char])
 parseRE s =
