@@ -90,9 +90,12 @@ extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
 extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
 
 -- parseMetachar :: [Char] -> Maybe (RE, [Char])
+parseMetachar [] = Just ((Ch '\\'), [])
 parseMetachar (c:s)
-  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' || c == '\\' = Just ((Ch c), s)
-  | otherwise                                                                                      = Nothing
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' = Just ((Ch c), s)
+  | c == '\\'                                                                         = Just ((Seq (Ch '\\') (Ch '\\')), s)
+  | otherwise                                                                         = Nothing
+-- Use sequence RE instead of just Ch
 
 -- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
@@ -171,6 +174,10 @@ matchTest regexp str = case parseMain regexp of
 
 main = do
   [regExp, fileName] <- getArgs
+
+  print regExp
+  print fileName
+
   srcText <- readFile fileName
   hPutStr stdout (unlines (matching regExp (lines srcText)))
 
