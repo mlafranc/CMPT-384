@@ -107,7 +107,7 @@ parseMetachar (c1:c2:s) = Just ((Ch c2), s)
 -- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
 parseChar str@(c:s)
-  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '[' || c == ']' = Nothing
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' = Nothing
   | c == '.'                                                  			      = Just (Any, s)
   | c == '\\'                                                                         = parseMetachar str
   | otherwise                                                                         = Just ((Ch c), s)
@@ -151,6 +151,8 @@ parseCharClass s =
 	_ -> Nothing
 
 -- parseClassItems :: [Char] -> Maybe (RE, [Char])
+parseClassItems (']':more) = Just (Any, ']':more)
+parseClassItems ('^':']':more) = Just ((None Any), ']':more)
 parseClassItems ('^':more) = 
    case parseCCItem(more) of 
 	Just (re, yet_more) -> case extendClassItems(re, yet_more) of
