@@ -231,7 +231,3 @@ main = do
   [regExp, fileName] <- getArgs
   srcText <- readFile fileName
   hPutStr stdout (unlines (matching regExp (lines srcText)))
-
-
-
-
