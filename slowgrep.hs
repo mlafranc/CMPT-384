@@ -90,9 +90,10 @@ extendSeq :: (RE, [Char]) -> Maybe (RE, [Char])
 extendRE :: (RE, [Char]) -> Maybe (RE, [Char])
 
 -- parseMetachar :: [Char] -> Maybe (RE, [Char])
+parseMetachar [] = Nothing
 parseMetachar (c:s)
-  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' || c == '\\' = Just ((Ch c), s)
-  | otherwise                                                                                      = Nothing
+  | c == '|' || c == '*' || c == '(' || c == ')'  || c == '?' || c == '+' || c == '.' || c == '\\'  = Just ((Ch c), s)
+  | otherwise                                                                                       = Nothing
 
 -- parseChar :: [Char] -> Maybe (RE, [Char])
 parseChar [] = Nothing
@@ -165,15 +166,30 @@ matchTest regexp str = case parseMain regexp of
     Just r -> match r str
     _ -> False
 
+-- checks to see if a string is made up of only backslashes
+isOnlyBackslashes :: String -> Bool
+isOnlyBackslashes (c:s)
+  | c == '\\' && s /= [] = isOnlyBackslashes s
+  | c == '\\' && s == [] = True
+  | otherwise            = False
 
+-- if string is only back slashes, adds back the backslash characters
+-- that the command prompt takes away
+fixBackslashString :: String -> Bool -> String
+fixBackslashString str bool = case bool of
+  True  -> str ++ str
+  False -> str
+
+    
 
 -- 5.  Command line interface
 
 main = do
-  [regExp, fileName] <- getArgs
+  [regExp1, fileName] <- getArgs
+
+  let regExp2 = fixBackslashString regExp1 (isOnlyBackslashes regExp1)
+
   srcText <- readFile fileName
-  hPutStr stdout (unlines (matching regExp (lines srcText)))
-
-
-
-
+  hPutStr stdout (unlines (matching regExp2 (lines srcText)))
+  
+  
