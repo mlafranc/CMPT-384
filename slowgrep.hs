@@ -1,6 +1,11 @@
 import System.Environment
 import System.IO (stdout,stderr,hPutStr,hPutStrLn)
 
+-- Team Bravo:
+-- Leonard Keith Franco, lfranco
+-- Mathieu Lafrance, mlafranc
+-- Syed Ali, shali
+
 --
 -- Simpleton Regular Expressions in Haskell (Slow!)
 --
